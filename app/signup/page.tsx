@@ -1,20 +1,26 @@
-import AcmeLogo from '@/app/ui/acme-logo';
-import SignupForm from '@/app/ui/signup-form';
-import { Suspense } from 'react';
+import Link from 'next/link';
+import { SignupForm } from '../ui/signup/signup-form';
 
 export default function SignupPage() {
     return (
-        <main className="flex items-center justify-center md:h-screen">
-            <div className="relative mx-auto flex w-full max-w-[400px] flex-col space-y-2.5 p-4 md:-mt-32">
-                <div className="flex h-20 w-full items-end rounded-lg bg-blue-500 p-3 md:h-36">
-                    <div className="w-32 text-white md:w-36">
-                        <AcmeLogo />
-                    </div>
-                </div>
-                <Suspense>
-                    <SignupForm />
-                </Suspense>
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+            <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-lg">
+                <h1 className="text-center text-3xl font-bold text-gray-900">
+                    Create an Account
+                </h1>
+
+                <SignupForm />
+
+                <p className="text-center text-sm text-gray-600">
+                    Already have an account?{' '}
+                    <Link
+                        href="/login"
+                        className="font-medium text-blue-600 hover:underline"
+                    >
+                        Log in here
+                    </Link>
+                </p>
             </div>
-        </main>
+        </div>
     );
 }

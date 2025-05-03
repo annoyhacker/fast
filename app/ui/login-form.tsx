@@ -1,4 +1,5 @@
 'use client';
+
 import { lusitana } from '@/app/ui/fonts';
 import {
   AtSymbolIcon,
@@ -6,11 +7,10 @@ import {
   ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowRightIcon } from '@heroicons/react/20/solid';
-import { Button } from './button';
+import { Button } from '@/app/ui/button';
 import { useActionState } from 'react';
 import { authenticate } from '@/app/lib/actions';
 import { useSearchParams } from 'next/navigation';
-
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -19,9 +19,11 @@ export default function LoginForm() {
     authenticate,
     undefined,
   );
+
   return (
     <form action={formAction} className="space-y-3">
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
+
         <h1 className={`${lusitana.className} mb-3 text-2xl`}>
           Please log in to continue.
         </h1>
@@ -68,13 +70,23 @@ export default function LoginForm() {
         </div>
         <input type="hidden" name="redirectTo" value={callbackUrl} />
         <Button className="mt-4 w-full" aria-disabled={isPending}>
-          Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
+          <div className="flex items-center justify-between w-full">
+            <span>Log in</span>
+            {isPending ? (
+              <div
+                className="ml-auto h-5 w-5 animate-spin rounded-full border-2 border-gray-50 border-t-transparent"
+                aria-label="Loading..."
+              />
+            ) : (
+              <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
+            )}
+          </div>
         </Button>
-        <p className="text-sm mt-4 text-center">
-          Don’t have an account? <a href="/signup" className="text-blue-600 underline">Sign up</a>
-        </p>
-
-        <div className="flex h-8 items-end space-x-1">
+        <div
+          className="flex h-8 items-end space-x-1"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {errorMessage && (
             <>
               <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
