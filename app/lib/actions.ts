@@ -150,12 +150,13 @@ export async function updateInvoice(
 }
 
 // Delete invoice
-export async function deleteInvoice(id: string) {
+export async function deleteInvoice(prevState: any, formData: FormData) {
     try {
+        const id = formData.get('id') as string;
         await sql`DELETE FROM invoices WHERE id = ${id}`;
         revalidatePath('/dashboard/invoices');
+        return { message: 'Invoice deleted successfully' };
     } catch (error) {
-        console.error(error);
         return { message: 'Database Error: Failed to Delete Invoice.' };
     }
 }
@@ -163,13 +164,13 @@ export async function deleteInvoice(id: string) {
 // Authenticate
 export async function authenticate(
     prevState: string | undefined,
-    formData: FormData
+    formData: FormData,
 ) {
     try {
         await signIn('credentials', formData);
     } catch (error) {
         if (error instanceof AuthError) {
-            switch (error.type) {
+            switch ((error as any).type) {
                 case 'CredentialsSignin':
                     return 'Invalid credentials.';
                 default:

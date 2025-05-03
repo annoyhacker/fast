@@ -29,7 +29,7 @@ export async function GET(request: Request) {
                 [email]
             );
 
-            return NextResponse.json({ exists: result.rowCount > 0 });
+            return NextResponse.json({ exists: result.rowCount! > 0 });
         } finally {
             client.release();
         }
