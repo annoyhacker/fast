@@ -1,42 +1,18 @@
 // app/api/check-email/route.ts
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import postgres from 'postgres';
 
+const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false,
-    },
-});
+export async function POST(request: Request) {
+    const { email } = await request.json();
 
-export async function GET(request: Request) {
     try {
-        const { searchParams } = new URL(request.url);
-        const email = searchParams.get('email');
-
-        if (!email) {
-            return NextResponse.json(
-                { message: 'Email is required' },
-                { status: 400 }
-            );
-        }
-
-        const client = await pool.connect();
-        try {
-            const result = await client.query(
-                'SELECT 1 FROM users WHERE email = $1 LIMIT 1',
-                [email]
-            );
-
-            return NextResponse.json({ exists: result.rowCount! > 0 });
-        } finally {
-            client.release();
-        }
+        const user = await sql`SELECT id FROM users WHERE email = ${email}`;
+        return NextResponse.json({ exists: user.length > 0 });
     } catch (error) {
-        console.error('Email check error:', error);
         return NextResponse.json(
-            { message: 'Error checking email' },
+            { error: 'Database error' },
             { status: 500 }
         );
     }

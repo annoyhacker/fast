@@ -22,17 +22,6 @@ export type State = {
 };
 
 // Schemas
-const SignupSchema = z
-    .object({
-        name: z.string().min(1, 'Name is required'),
-        email: z.string().email('Invalid email'),
-        password: z.string().min(6, 'Password must be at least 6 characters'),
-        confirmPassword: z.string().min(6, 'Confirm Password is required'),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: 'Passwords do not match',
-        path: ['confirmPassword'],
-    });
 
 const FormSchema = z.object({
     id: z.string(),
@@ -46,10 +35,18 @@ const FormSchema = z.object({
     date: z.string(),
 });
 
-const CreateInvoiceSchema = FormSchema.omit({ id: true, date: true });
+const SignupSchema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    email: z.string().email(),
+    password: z.string().min(6),
+    confirmPassword: z.string().min(6),
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+});
 
-// Register user
-export async function register(prevState: any, formData: FormData) {
+//signup user
+export async function signUp(prevState: string | null, formData: FormData): Promise<string> {
     const validatedFields = SignupSchema.safeParse({
         name: formData.get('name'),
         email: formData.get('email'),
@@ -58,29 +55,45 @@ export async function register(prevState: any, formData: FormData) {
     });
 
     if (!validatedFields.success) {
-        return {
-            errors: validatedFields.error.flatten().fieldErrors,
-            message: 'Missing Fields. Failed to Signup',
-        };
+        return 'Invalid form data';
     }
 
     const { name, email, password } = validatedFields.data;
 
+
     try {
+        // Check if user already exists
+        const existingUser = await sql`
+        SELECT id FROM users WHERE email = ${email}
+      `;
+
+        if (existingUser.length > 0) {
+            return 'User already exists with this email';
+        }
+
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        // Create new user
         await sql`
-      INSERT INTO users (name, email, password)
-      VALUES (${name}, ${email}, ${hashedPassword})
-    `;
+        INSERT INTO users (id, name, email, password)
+  VALUES (
+    uuid_generate_v4(), 
+    ${name}, 
+    ${email}, 
+    ${hashedPassword}
+  )
+`;
 
-        redirect('/login');
     } catch (error) {
-        console.error(error);
-        return { message: 'Database Error: Failed to create user' };
+        console.error('Signup error:', error);
+        return 'Failed to create account';
     }
+
+    redirect('/login');
 }
 
+const CreateInvoiceSchema = FormSchema.omit({ id: true, date: true });
 // Create invoice
 export async function createInvoice(prevState: State, formData: FormData) {
     const validatedFields = CreateInvoiceSchema.safeParse({
@@ -161,15 +174,18 @@ export async function deleteInvoice(prevState: any, formData: FormData) {
     }
 }
 
-// Authenticate
+// Authenticat
 export async function authenticate(
     prevState: string | undefined,
     formData: FormData,
+
 ) {
+
     try {
         await signIn('credentials', formData);
     } catch (error) {
-        if (error instanceof AuthError) {
+
+        if (error instanceof AuthError && typeof (error as any).type === 'string') {
             switch ((error as any).type) {
                 case 'CredentialsSignin':
                     return 'Invalid credentials.';
