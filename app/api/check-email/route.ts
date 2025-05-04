@@ -1,4 +1,3 @@
-// app/api/check-email/route.ts
 import { NextResponse } from 'next/server';
 import postgres from 'postgres';
 
