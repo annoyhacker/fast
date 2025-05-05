@@ -30,10 +30,17 @@ export function UpdateInvoice({ id }: { id: string }) {
 export function DeleteInvoice({ id }: { id: string }) {
   const [state, formAction] = useFormState(deleteInvoice, null);
 
+  const handleDelete = (event: React.FormEvent<HTMLFormElement>) => {
+    const confirmed = window.confirm('Are you sure you want to delete this invoice?');
+    if (!confirmed) {
+      event.preventDefault();
+    }
+  };
+
   return (
-    <form action={formAction}>
+    <form action={formAction} onSubmit={handleDelete}>
       <input type="hidden" name="id" value={id} />
-      <button className="rounded-md border p-2 hover:bg-gray-100">
+      <button className="rounded-md border p-2 hover:bg-gray-100" type="submit">
         <span className="sr-only">Delete</span>
         <TrashIcon className="w-5" />
       </button>
