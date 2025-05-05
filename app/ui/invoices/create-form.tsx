@@ -1,4 +1,6 @@
 'use client';
+
+import { useEffect } from 'react';
 import { CustomerField } from '@/app/lib/definitions';
 import Link from 'next/link';
 import {
@@ -10,10 +12,43 @@ import {
 import { Button } from '@/app/ui/button';
 import { createInvoice, State } from '@/app/lib/actions';
 import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useRouter } from 'next/navigation';
 
 export default function Form({ customers }: { customers: CustomerField[] }) {
   const initialState: State = { message: null, errors: {} };
   const [state, dispatch] = useActionState(createInvoice, initialState);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state?.message === 'Invoice created successfully.') {
+      router.push('/dashboard/invoices');
+    }
+  }, [state, router]);
+
+  const SubmitButton = () => {
+    const { pending } = useFormStatus();
+    return (
+      <Button type="submit" disabled={pending}>
+        {pending ? 'Creating Invoice...' : 'Create Invoice'}
+      </Button>
+    );
+  };
+
+  const FormBackdrop = () => {
+    const { pending } = useFormStatus();
+    return (
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.modal + 1 }}
+        open={pending}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    );
+  };
+
   return (
     <form action={dispatch}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
@@ -109,7 +144,7 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                   type="radio"
                   value="paid"
                   className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
-                  arie-describedby="status-error"
+                  aria-describedby="status-error"
                 />
                 <label
                   htmlFor="paid"
@@ -130,6 +165,9 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
           </div>
         </fieldset>
       </div>
+
+      <FormBackdrop />
+
       <div className="mt-6 flex justify-end gap-4">
         <Link
           href="/dashboard/invoices"
@@ -137,7 +175,7 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
         >
           Cancel
         </Link>
-        <Button type="submit">Create Invoice</Button>
+        <SubmitButton />
       </div>
     </form>
   );
