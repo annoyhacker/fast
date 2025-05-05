@@ -7,6 +7,11 @@ import { redirect } from 'next/navigation';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import bcrypt from 'bcryptjs';
+import { signOut } from '@/auth';
+
+export async function handleSignOut() {
+    await signOut({ redirectTo: '/' });
+}
 
 // PostgreSQL client
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
